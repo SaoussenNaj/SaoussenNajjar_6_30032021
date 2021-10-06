@@ -2,8 +2,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const sauceRoutes = require("./routes/sauce");
 const userRoutes = require("./routes/user");
-// creation variable app pour notre application et appeler express()ce qui permet de creer une application express
+//
+// creation variable app pour notre application et appeler express()ce qui permet de créer une application express
 const app = express();
 
 // Etablir la connexion avec la BD
@@ -30,7 +32,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(bodyParser.json());
-
+app.use("/api/sauces", sauceRoutes);
 app.use("/api/auth", userRoutes);
 
 // exporter cette const app pour qu'on puisse y acceder depuis les autres fichiers

@@ -1,3 +1,4 @@
+// on crée un schéma de données contenant les champs souhaité pour chaque sauce
 const mongoose = require("mongoose");
 
 const sauceSchema = mongoose.Schema({
@@ -13,4 +14,5 @@ const sauceSchema = mongoose.Schema({
   usersLiked: { type: String, required: true },
   usersDisliked: { type: String, required: true },
 });
+//  on exporte le  schéma en tant que modèle Mongoose appelé Sauce
 module.exports = mongoose.model("Sauce", sauceSchema);
