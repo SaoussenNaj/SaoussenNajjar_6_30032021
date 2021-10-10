@@ -15,7 +15,6 @@ exports.createSauce = (req, res, next) => {
     usersLiked: [],
     usersDisliked: [],
   });
-  console.log(req.body.sauce);
   sauce
     .save()
     .then(() => res.status(201).json({ message: "Sauce enregistrée" }))
@@ -73,60 +72,61 @@ exports.postLike = (req, res, next) => {
   const userId = req.body.userId;
   const like = req.body.like;
   const sauceId = req.params.id;
-  const usersLiked = [];
-  const usersDisliked = [];
 
   if (like === 1) {
     // 1- je recupere la sauce de la BD
     Sauce.findOne({ _id: sauceId })
-      .then(() => res.status(200).json({ message: "Vous aimez la sauce !" }))
+      //on reçoit les caractéristiques de la sauce
+      .then((sauce) => {
+        sauce.usersLiked.push(userId); //on push le userId dans le tableau usersLiked
+        sauce.likes += 1; //On ajoute 1 aux likes déjà présentes
+        sauce.save(); //on enregistre dans la BD
+        res.status(200).json({ message: "Vous aimez la sauce !" }); //message de response
+      })
       .catch((error) => res.status(400).json({ error }));
-    for (i = 0; i < usersLiked.length; i++) {
-      const myData = new User(req.body.userId);
-      myData
-        .save()
-        .then((idUser) => {
-          res.send("idUser enregistré dans la base de données");
-        })
-        .catch((error) => {
-          res.status(400).send("idUser non enregistré dans la base de donnée");
-        });
-      usersLiked = { userId };
-    }
-    console.log(usersLiked);
   }
+
   if (like === -1) {
     Sauce.findOne({ _id: sauceId })
-      .then(() =>
-        res.status(200).json({ message: "Vous n'aimez pas la sauce !" })
-      )
+      .then((sauce) => {
+        sauce.usersDisliked.push(userId);
+        sauce.dislikes += 1;
+        sauce.save();
+        res.status(200).json({ message: "Vous n'aimez pas la sauce !" });
+      })
       .catch((error) => res.status(400).json({ error }));
-    for (i = 0; i < usersDisliked.length; i++) {
-      usersDisliked = { userId };
-    }
-    console.log(usersDisliked);
   }
   if (like === 0) {
     Sauce.findOne({ _id: sauceId })
-      .then(() =>
-        res.status(200).json({
-          message: "Vous n'avez pas donner votre avis sur cette sauce !",
-        })
-      )
+      .then((sauce) => {
+        //on declare une const hasUserLiked pour chercher dans le tableau si userID existe ou pas
+        const hasUserLiked = sauce.usersLiked.find((user) => user === userId);
+        if (hasUserLiked) {
+          //si userId existe dans le tableau
+          // on crée et on retourne avec filter un nv tableau contenant tous les élts du tableau d'origine sans le userId
+          sauce.usersLiked = sauce.usersLiked.filter((user) => user != userId);
+          //on soustrait 1 du nbre total des likes
+          sauce.likes -= 1;
+          sauce.save(); //save dans la BD
+          return res
+            .status(200)
+            .json({ message: "Vous avez annulé votre like." });
+        }
+
+        const hasUserDisliked = sauce.usersDisliked.find(
+          (user) => user === userId
+        );
+        if (hasUserDisliked) {
+          sauce.usersDisliked = sauce.usersDisliked.filter(
+            (user) => user != userId
+          );
+          sauce.dislikes -= 1;
+          sauce.save();
+          return res
+            .status(200)
+            .json({ message: "Vous avez annulé votre dislike." });
+        }
+      })
       .catch((error) => res.status(400).json({ error }));
-    if (usersLiked) {
-      for (i = 0; i < usersLiked.length; i++) {
-        deleteOne({ _id: req.params.userId })
-          .then(() => res.status(200).json({ message: "UserId supprimé !" }))
-          .catch((error) => res.status(400).json({ error }));
-      }
-    }
-    if (usersDisliked) {
-      for (i = 0; i < usersDisliked.length; i++) {
-        deleteOne({ _id: req.params.userId })
-          .then(() => res.status(200).json({ message: "UserId supprimé !" }))
-          .catch((error) => res.status(400).json({ error }));
-      }
-    }
   }
 };
