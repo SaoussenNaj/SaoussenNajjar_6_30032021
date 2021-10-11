@@ -67,6 +67,7 @@ exports.getAllSauce = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+// liker ou disliker une sauce:
 exports.postLike = (req, res, next) => {
   // const {userId, like} = req.body; //object destructuring
   const userId = req.body.userId;
